@@ -2,8 +2,13 @@
 
 __pycache__/
 .venv/
+.idea/
 
 data/train/
 data/test/
 log/
 documents/
+
+tensorboard/
+checkpoints/
+result/

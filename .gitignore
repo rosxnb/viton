@@ -12,3 +12,4 @@ documents/
 tensorboard/
 checkpoints/
 result/
+predictions/

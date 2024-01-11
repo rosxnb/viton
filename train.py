@@ -73,13 +73,15 @@ def get_opt():
     parser.add_argument("--keep_step", type=int, default = 100_000)
     parser.add_argument("--decay_step", type=int, default = 100_000)
     parser.add_argument("--shuffle", action='store_true', help='shuffle input data')
+    parser.add_argument("--use_cuda", action=argparse.BooleanOptionalAction, default = False)
 
     opt = parser.parse_args()
     return opt
 
 
 def train_gmm(opt, train_loader, model, board):
-    model.cuda()
+    if opt.use_cuda:
+        model.cuda()
     model.train()
 
     # criterion
@@ -95,15 +97,24 @@ def train_gmm(opt, train_loader, model, board):
         iter_start_time = time.time()
         inputs = train_loader.next_batch()
 
-        im          = inputs['image'].cuda()
-        im_pose     = inputs['pose_image'].cuda()
-        im_h        = inputs['head'].cuda()
-        shape       = inputs['shape'].cuda()
-        agnostic    = inputs['agnostic'].cuda()
-        c           = inputs['cloth'].cuda()
-        # cm          = inputs['cloth_mask'].cuda()
-        im_c        = inputs['parse_cloth'].cuda()
-        im_g        = inputs['grid_image'].cuda()
+        if opt.use_cuda:
+            im          = inputs['image'].cuda()
+            im_pose     = inputs['pose_image'].cuda()
+            im_h        = inputs['head'].cuda()
+            shape       = inputs['shape'].cuda()
+            agnostic    = inputs['agnostic'].cuda()
+            c           = inputs['cloth'].cuda()
+            im_c        = inputs['parse_cloth'].cuda()
+            im_g        = inputs['grid_image'].cuda()
+        else:
+            im          = inputs['image']
+            im_pose     = inputs['pose_image']
+            im_h        = inputs['head']
+            shape       = inputs['shape']
+            agnostic    = inputs['agnostic']
+            c           = inputs['cloth']
+            im_c        = inputs['parse_cloth']
+            im_g        = inputs['grid_image']
 
         # grid, theta  = model(agnostic, c)
         grid, _  = model(agnostic, c)
@@ -130,16 +141,17 @@ def train_gmm(opt, train_loader, model, board):
             print('step: %8d, time: %.3f, loss: %4f' % (step + 1, t, loss.item()), flush=True)
 
         if (step + 1) % opt.save_count == 0:
-            save_checkpoint(model, os.path.join(opt.checkpoint_dir, opt.name, f'step_{step + 1}.pth'))
+            save_checkpoint(model, os.path.join(opt.checkpoint_dir, opt.name, f'step_{step + 1}.pth'), opt.use_cuda)
 
 
 def train_tom(opt, train_loader, model, board):
-    model.cuda()
+    if opt.use_cuda:
+        model.cuda()
     model.train()
 
     # criterion
     criterionL1 = nn.L1Loss()
-    criterionVGG = VGGLoss()
+    criterionVGG = VGGLoss(use_cuda=opt.use_cuda)
     criterionMask = nn.L1Loss()
 
     # optimzer
@@ -149,14 +161,20 @@ def train_tom(opt, train_loader, model, board):
         iter_start_time = time.time()
         inputs = train_loader.next_batch()
 
-        im = inputs['image'].cuda()
         im_pose = inputs['pose_image']
         im_h = inputs['head']
         shape = inputs['shape']
 
-        agnostic = inputs['agnostic'].cuda()
-        c = inputs['cloth'].cuda()
-        cm = inputs['cloth_mask'].cuda()
+        if opt.use_cuda:
+            im = inputs['image'].cuda()
+            agnostic = inputs['agnostic'].cuda()
+            c = inputs['cloth'].cuda()
+            cm = inputs['cloth_mask'].cuda()
+        else:
+            im = inputs['image']
+            agnostic = inputs['agnostic']
+            c = inputs['cloth']
+            cm = inputs['cloth_mask']
 
         outputs = model(torch.cat([agnostic, c], 1))
         p_rendered, m_composite = torch.split(outputs, 3, 1)
@@ -200,7 +218,7 @@ def train_tom(opt, train_loader, model, board):
             )
 
         if (step + 1) % opt.save_count == 0:
-            save_checkpoint(model, os.path.join(opt.checkpoint_dir, opt.name, 'step_%06d.pth' % (step + 1)))
+            save_checkpoint(model, os.path.join(opt.checkpoint_dir, opt.name, 'step_%06d.pth' % (step + 1)), opt.use_cuda)
 
 
 def main():
@@ -225,25 +243,25 @@ def main():
         model = GMM(opt)
 
         if not opt.checkpoint == '' and os.path.exists(opt.checkpoint):
-            load_checkpoint(model, opt.checkpoint)
+            load_checkpoint(model, opt.checkpoint, opt.use_cuda)
 
         start_time = time.time()
         train_gmm(opt, train_loader, model, board)
         end_time = time.time()
         print(f'GMM training took {(end_time - start_time) / 60} minutes')
-        save_checkpoint(model, os.path.join(opt.checkpoint_dir, opt.name, 'gmm_final.pth'))
+        save_checkpoint(model, os.path.join(opt.checkpoint_dir, opt.name, 'gmm_final.pth'), opt.use_cuda)
 
     elif opt.stage == 'TOM':
         model = UnetGenerator(25, 4, 6, ngf=64, norm_layer=nn.InstanceNorm2d)
 
         if not opt.checkpoint == '' and os.path.exists(opt.checkpoint):
-            load_checkpoint(model, opt.checkpoint)
+            load_checkpoint(model, opt.checkpoint, opt.use_cuda)
 
         start_time = time.time()
         train_tom(opt, train_loader, model, board)
         end_time = time.time()
         print(f'TOM training took {(end_time - start_time) / 60} minutes')
-        save_checkpoint(model, os.path.join(opt.checkpoint_dir, opt.name, 'tom_final.pth'))
+        save_checkpoint(model, os.path.join(opt.checkpoint_dir, opt.name, 'tom_final.pth'), opt.use_cuda)
 
     else:
         raise NotImplementedError(f'Model [{opt.stage}] is not implemented')

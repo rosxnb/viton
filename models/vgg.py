@@ -40,10 +40,12 @@ class Vgg19(nn.Module):
 
 
 class VGGLoss(nn.Module):
-    def __init__(self, layids=None):
+    def __init__(self, use_cuda=True, layids=None):
         super().__init__()
         self.vgg = Vgg19()
-        self.vgg.cuda()
+        if use_cuda:
+            self.vgg.cuda()
+
         self.criterion = nn.L1Loss()
         self.weights = [ 1.0/32, 1.0/16, 1.0/8, 1.0/4, 1.0 ]
         self.layids = layids

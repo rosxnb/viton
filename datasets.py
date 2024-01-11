@@ -211,6 +211,7 @@ if __name__ == "__main__":
     parser.add_argument("--shuffle", action='store_true', help='shuffle input data')
     parser.add_argument('-b', '--batch-size', type=int, default=4)
     parser.add_argument('-j', '--workers', type=int, default=1)
+    parser.add_argument("--use_cuda", action=argparse.BooleanOptionalAction, default = False)
 
     opt = parser.parse_args()
     dataset = CPDataset(opt)

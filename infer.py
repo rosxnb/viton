@@ -44,9 +44,6 @@ def main():
     pretrained_gmm_path = os.path.join("checkpoints", "train_gmm_200K", "gmm_final.pth")
     pretrained_tom_path = os.path.join("checkpoints", "train_tom_200K", "tom_final.pth")
 
-    if not os.path.exists(opt.result_dir):
-        os.makedirs(opt.result_dir)
-
     data_loader = CPDataset(opt)
 
     while True:

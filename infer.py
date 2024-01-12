@@ -50,8 +50,9 @@ def main():
     data_loader = CPDataset(opt)
 
     while True:
-        idx = int(input(f"choose an index (0, {len(data_loader)}]: "))
+        idx = int(input(f"\n\nChoose an index (0, {len(data_loader)}]: "))
         inputs = data_loader[idx]
+        print(f"Selected: \n\tcloth_file: {inputs['c_name']} \n\timg_file:   {inputs['im_name']}")
 
         _, ax = plt.subplots(4, 3, figsize=(15, 8), num="VITON Inference Results")
         plt.subplots_adjust(left=0.1, right=0.9, top=0.9, bottom=0.1, wspace=0.2, hspace=0.2)
@@ -127,7 +128,9 @@ def main():
             m_composite = F.sigmoid(m_composite)
             p_tryon = warped_cloth * m_composite + p_rendered * (1 - m_composite)
 
-        ax[3, 0].imshow( ( (warped_cloth + im).squeeze(0).cpu().detach().permute(1, 2, 0) * 0.5 ) + 0.5 )
+        gmm_overlay = warped_cloth + im
+        gmm_overlay = gmm_overlay / torch.max(gmm_overlay)
+        ax[3, 0].imshow( ( gmm_overlay.squeeze(0).cpu().detach().permute(1, 2, 0) * 0.5 ) + 0.5 )
         ax[3, 0].axis("off")
         ax[3, 0].set_title("GMM Overlay")
         ax[3, 1].imshow( ( p_rendered.squeeze(0).cpu().detach().permute(1, 2, 0) * 0.5 ) + 0.5 )

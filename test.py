@@ -91,12 +91,26 @@ def test_gmm(opt, test_loader, model, board):
         warped_cloth = F.grid_sample(c, grid, padding_mode='border', align_corners=False)
         warped_mask = F.grid_sample(cm, grid, padding_mode='zeros', align_corners=False)
         warped_grid = F.grid_sample(im_g, grid, padding_mode='zeros', align_corners=False)
+        # print(f"grid: {grid.shape}")
+        # print(f"cm: {cm.shape}")
+        # print(f"im_g: {im_g.shape}")
+        # print(f"warped_cloth: {warped_cloth.shape}")
+        # print(f"warped_mask: {warped_mask.shape}")
+        # print(f"warped_grid: {warped_grid.shape}")
 
         visuals = [
             [im_h, shape, im_pose],
             [c, warped_cloth, im_c],
             [warped_grid, (warped_cloth + im) * 0.5, im]
         ]
+
+        # print(f"    im_h size:          {im_h.shape}") # [4, 3, 256, 192]
+        # print(f"    shape size:         {shape.shape}") # [4, 1, 256, 192]
+        # print(f"    im_pose size:       {im_pose.shape}") # [4, 1, 256, 192]
+        # print(f"    c size:             {c.shape}") # [4, 3, 256, 192]
+        # print(f"    warped_cloth size:  {warped_cloth.shape}") # [4, 3, 256, 192]
+        # print(f"    im_c size:          {im_c.shape}") # [4, 3, 256, 192]
+        # print(f"    warped_grid size:   {warped_grid.shape}") # [4, 3, 256, 192]
 
         save_images(warped_cloth, c_names, warp_cloth_dir)
         save_images(warped_mask * 2 - 1, c_names, warp_mask_dir)
@@ -156,6 +170,16 @@ def test_tom(opt, test_loader, model, board):
             [c, 2 * cm -1, m_composite],
             [p_rendered, p_tryon, im]
         ]
+
+        # print(f"    im_h size:          {im_h.shape}") # [4, 3, 256, 192]
+        # print(f"    shape size:         {shape.shape}") # [4, 1, 256, 192]
+        # print(f"    im_pose size:       {im_pose.shape}") # [4, 1, 256, 192]
+        # print(f"    c size:             {c.shape}") # [4, 3, 256, 192]
+        # print(f"    cm size:            {cm.shape}") # [4, 1, 256, 192]
+        # print(f"    m_composite size:   {m_composite.shape}") # [4, 1, 256, 192]
+        # print(f"    p_rendered size:    {p_rendered.shape}") # [4, 3, 256, 192]
+        # print(f"    p_tryon size:       {p_tryon.shape}") # [4, 3, 256, 192]
+        # print(f"    im size:            {im.shape}") # [4, 3, 256, 192]
 
         save_images(p_tryon, im_names, try_on_dir)
         if (step + 1) % opt.display_count == 0:

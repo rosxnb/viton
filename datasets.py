@@ -156,6 +156,7 @@ class CPDataset(data.Dataset):
             'head'        : im_h,           # for visualization
             'pose_image'  : im_pose,        # for visualization
             'grid_image'  : im_g,           # for visualization
+            'parse_image' : im_parse,       # for visualization
         }
 
         return result

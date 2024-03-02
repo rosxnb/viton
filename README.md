@@ -2,6 +2,9 @@
 Building a *Character Preserving Virtual Try-On System* using deep learning. The project is initiated as 
 college project work.
 
+A [web app](https://github.com/rosxnb/try-on-system) is developed where users can give image input to the model using a web browser and FastAPI connects
+this model to frontend. 
+
 
 ### Resources
 
